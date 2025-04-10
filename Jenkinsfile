@@ -1,32 +1,40 @@
 def emailRecipients = 'cmvishnubabu08@gmail.com'
-// for multiple recipients:  def emailRecipients = 'xyz@ecos.com,abc@vishalk17.com'
+// For multiple recipients: def emailRecipients = 'xyz@ecos.com,abc@vishalk17.com'
 
 pipeline {
-    agent any
+    agent {
+        label 'master'
+    }
+
+    parameters {
+        choice(name: 'IS_BUILD_NEEDED', choices: ['y', 'n'], description: 'Do you want to build the image?')
+    }
+
     environment {
         docker_image_name = 'vishnu1/nginx'
         docker_image_tag = 'v2.0'
         DOCKERHUB_CREDENTIALS = credentials('docker-credential')
-        JENKINS_URL = "${env.JENKINS_URL}" // Jenkins URL
-        BUILD_URL = "${env.BUILD_URL}" // Build URL
-        CONSOLE_URL = "${BUILD_URL}/console" // Console output URL
-        JOB_NAME = "${env.JOB_NAME}" // Job Name
-        BUILD_NUMBER = "${env.BUILD_NUMBER}" // Build Number
-        is_build_needed = 'y' // Set 'y' to build the image, 'n' to skip building
+        JENKINS_URL = "${env.JENKINS_URL}"
+        BUILD_URL = "${env.BUILD_URL}"
+        CONSOLE_URL = "${BUILD_URL}console"
+        JOB_NAME = "${env.JOB_NAME}"
+        BUILD_NUMBER = "${env.BUILD_NUMBER}"
+        is_build_needed = "${params.IS_BUILD_NEEDED}"
+        BLUE_OCEAN_URL = "${JENKINS_URL}blue/organizations/jenkins/${JOB_NAME}/detail/${JOB_NAME}/${BUILD_NUMBER}/pipeline"
     }
 
     stages {
         stage('Start Notification') {
             steps {
                 script {
-                    currentBuild.result = 'SUCCESS' // Set the default result to SUCCESS
+                    currentBuild.result = 'SUCCESS'
                     emailext subject: "Job Started: ${JOB_NAME} #${BUILD_NUMBER}",
-                        mimeType: 'text/html', // Set content type to HTML
+                        mimeType: 'text/html',
                         body: """
                         The job has started.<br>
                         <a href='${BUILD_URL}'>Click here</a> to view the job in Jenkins.<br>
                         <a href='${CONSOLE_URL}'>Click here</a> to view the console output.<br>
-			<a href='${BLUE_OCEAN_URL}'>Click here</a> to view the Blue Ocean URL.
+                        <a href='${BLUE_OCEAN_URL}'>Click here</a> to view the Blue Ocean pipeline.
                         """,
                         to: emailRecipients
                 }
@@ -48,7 +56,7 @@ pipeline {
         stage('Build image') {
             steps {
                 sh 'pwd && whoami'
-		sh 'git log --oneline -n 10'
+                sh 'git log --oneline -n 10'
                 sh "docker build -t ${docker_image_name}:${docker_image_tag} ."
             }
         }
@@ -69,35 +77,36 @@ pipeline {
     post {
         success {
             script {
-                currentBuild.result = 'SUCCESS' // Set the build result to SUCCESS
+                currentBuild.result = 'SUCCESS'
             }
             emailext subject: "Job Succeeded: ${JOB_NAME} #${BUILD_NUMBER}",
-                mimeType: 'text/html', // Set content type to HTML
+                mimeType: 'text/html',
                 body: """
                 The job has succeeded.<br>
                 <a href='${BUILD_URL}'>Click here</a> to view the job in Jenkins.<br>
                 <a href='${CONSOLE_URL}'>Click here</a> to view the console output.<br>
-		<a href='${BLUE_OCEAN_URL}'>Click here</a> to view the Blue Ocean URL.
+                <a href='${BLUE_OCEAN_URL}'>Click here</a> to view the Blue Ocean pipeline.
                 """,
                 to: emailRecipients
         }
+
         failure {
             script {
-                currentBuild.result = 'FAILURE' // Set the build result to FAILURE
+                currentBuild.result = 'FAILURE'
             }
             emailext subject: "Job Failed: ${JOB_NAME} #${BUILD_NUMBER}",
-                mimeType: 'text/html', // Set content type to HTML
+                mimeType: 'text/html',
                 body: """
                 The job has failed.<br>
                 <a href='${BUILD_URL}'>Click here</a> to view the job in Jenkins.<br>
                 <a href='${CONSOLE_URL}'>Click here</a> to view the console output.<br>
-		<a href='${BLUE_OCEAN_URL}'>Click here</a> to view the Blue Ocean URL.
+                <a href='${BLUE_OCEAN_URL}'>Click here</a> to view the Blue Ocean pipeline.
                 """,
                 to: emailRecipients
         }
+
         always {
             sh 'docker logout'
         }
     }
 }
-
