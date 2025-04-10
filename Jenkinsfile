@@ -3,9 +3,8 @@ def emailRecipients = 'cmvishnubabu08@gmail.com'
 
 pipeline {
     
-        agent {
-    label 'master'
-    }
+        agent any
+
 
     
 
