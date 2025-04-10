@@ -4,7 +4,7 @@ def emailRecipients = 'cmvishnubabu08@gmail.com'
 pipeline {
     
         agent {
-    label 'docker'
+    label 'master'
     }
 
     
