@@ -2,9 +2,7 @@ def emailRecipients = 'cmvishnubabu08@gmail.com'
 // for multiple recipients:  def emailRecipients = 'xyz@ecos.com,abc@vishalk17.com'
 
 pipeline {
-    agent {
-        label 'master'
-    }
+    agent any
     environment {
         docker_image_name = 'vishnu1/nginx'
         docker_image_tag = 'v2.0'
