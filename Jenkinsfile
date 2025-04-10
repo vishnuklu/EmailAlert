@@ -2,9 +2,12 @@ def emailRecipients = 'cmvishnubabu08@gmail.com'
 // For multiple recipients: def emailRecipients = 'xyz@ecos.com,abc@vishalk17.com'
 
 pipeline {
-    agent {
-        label 'master'
+    
+        agent {
+    label 'docker'
     }
+
+    
 
     parameters {
         choice(name: 'IS_BUILD_NEEDED', choices: ['y', 'n'], description: 'Do you want to build the image?')
